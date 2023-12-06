@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Forward and backward pass &#8212; ML book</title>
+    <title>Training of MLP &#8212; ML book</title>
   
   
   
@@ -63,11 +63,13 @@ const thebe_selector_input = "pre"
 const thebe_selector_output = ".output, .cell_output"
 </script>
     <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'mlp/forward_backward_pass';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Activation functions" href="activations.html" />
-    <link rel="prev" title="Layers of MLP" href="layers.html" />
+    <link rel="next" title="Back propagation" href="backprop.html" />
+    <link rel="prev" title="Activation functions" href="activations.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -226,6 +228,7 @@ const thebe_selector_output = ".output, .cell_output"
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unsupervised_learning/unsupervised.html">Unsupervised Learning</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-9"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../unsupervised_learning/pca.html">Principal components analysis (PCA)</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../unsupervised_learning/clustering_metrics.html">Clustering metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unsupervised_learning/k_means.html">K-means</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unsupervised_learning/hierarchic_clustering.html">Hierarchical Clustering</a></li>
@@ -236,8 +239,8 @@ const thebe_selector_output = ".output, .cell_output"
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="mlp.html">Multilayer perceptron (MLP)</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-10"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="layers.html">Layers of MLP</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Forward and backward pass</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activations.html">Activation functions</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Training of MLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backprop.html">Back propagation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="weight_init.html">Weights initialization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="regularization.html">Regularization in MLP</a></li>
@@ -269,8 +272,8 @@ const thebe_selector_output = ".output, .cell_output"
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../rl/RL.html">Reinforcement Learning</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-14"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../rl/basics.html">RL basics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../rl/multiarmed_bandits.html">Multiarmed bandits</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../rl/mdp.html">Markov decision process (MDP)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rl/multiarmed_bandits.html">Multi-armed bandits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rl/mdp.html">Markov Decision Process (MDP)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../rl/q_learning.html">Q-learning</a></li>
 </ul>
 </li>
@@ -461,7 +464,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
 </div></div>
       
     </div>
@@ -472,11 +477,28 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Forward and backward pass</h1>
+    <h1>Training of MLP</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#binary-classification">Binary classification</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiclass-classification">Multiclass classification</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#regression">Regression</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#forward-and-backward-pass">Forward and backward pass</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#batch-training">Batch training</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -486,8 +508,110 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="forward-and-backward-pass">
-<h1>Forward and backward pass<a class="headerlink" href="#forward-and-backward-pass" title="Permalink to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="training-of-mlp">
+<h1>Training of MLP<a class="headerlink" href="#training-of-mlp" title="Permalink to this heading">#</a></h1>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Permalink to this heading">#</a></h2>
+<section id="binary-classification">
+<h3>Binary classification<a class="headerlink" href="#binary-classification" title="Permalink to this heading">#</a></h3>
+<p>The output of the neural network is usually a number from <span class="math notranslate nohighlight">\([0, 1]\)</span> which is the probability of the positive class. Sigmoid is the typical choice for the output layer:</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat y = x_L = x_{\mathrm{out}} = \sigma(x_{L-1})
+\]</div>
+<p>Loss function:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal L(\widehat y, y) = -y\log(\widehat y) -(1-y) \log(1-\widehat y)
+\]</div>
+</section>
+<section id="multiclass-classification">
+<h3>Multiclass classification<a class="headerlink" href="#multiclass-classification" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>For <span class="math notranslate nohighlight">\(K\)</span> classes the output contains <span class="math notranslate nohighlight">\(K\)</span> numbers <span class="math notranslate nohighlight">\((\widehat y_1, \ldots, \widehat y_K)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\widehat y_k\)</span> is the probability of class <span class="math notranslate nohighlight">\(k\)</span></p></li>
+<li><p>Now the output of the neural network is</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+    \boldsymbol{\widehat y} = \boldsymbol x_L = \boldsymbol x_{\mathrm{out}} = \mathrm{SoftMax}(\boldsymbol x_{L-1}), 
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+    \mathrm{SoftMax}(\boldsymbol z)_i = \frac{e^{z_i}}{\sum_i
+ e^{z_i}}\]</div>
+<ul class="simple">
+<li><p>Finally, plug the predictions into the cross-entropy loss:</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+\mathcal L(\boldsymbol{\widehat y}, \boldsymbol y) = -\sum\limits_{k=1}^K y_k\log(\widehat y_k)
+\]</div>
+</section>
+<section id="regression">
+<h3>Regression<a class="headerlink" href="#regression" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Predict a real number <span class="math notranslate nohighlight">\(\widehat y = x_L = x_{\mathrm{out}}\)</span></p></li>
+<li><p>The loss function is usually quadratic:</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+\mathcal L(\widehat y, y) = (\widehat y - y)^2
+\]</div>
+</section>
+</section>
+<section id="forward-and-backward-pass">
+<h2>Forward and backward pass<a class="headerlink" href="#forward-and-backward-pass" title="Permalink to this heading">#</a></h2>
+<figure class="align-center">
+<img alt="../_images/forward_pass.png" src="../_images/forward_pass.png" />
+</figure>
+<p>The goal is to minimize the loss function with respect to parameters <span class="math notranslate nohighlight">\(\boldsymbol \theta\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal L = \mathcal L_{\boldsymbol\theta}(\boldsymbol {\widehat y}, \boldsymbol y) \to \min\limits_{\boldsymbol \theta}
+\]</div>
+<p>where
+$<span class="math notranslate nohighlight">\(
+\boldsymbol \theta = (\boldsymbol W_1, \boldsymbol b_1, \boldsymbol W_2, \boldsymbol b_2, \ldots, \boldsymbol W_L, \boldsymbol b_L)
+\)</span>$</p>
+<p>Let’s use the standard technique — the gradient descent!</p>
+<ol class="arabic simple">
+<li><p>Start from some random parameters <span class="math notranslate nohighlight">\(\boldsymbol \theta_0\)</span></p></li>
+<li><p>Given a training sample <span class="math notranslate nohighlight">\((\boldsymbol x, \boldsymbol y)\)</span>, do the <strong>forward pass</strong> and get the output <span class="math notranslate nohighlight">\(\boldsymbol {\widehat y} = F_{\boldsymbol \theta}(\boldsymbol x)\)</span></p></li>
+<li><p>Calculate the loss function
+<span class="math notranslate nohighlight">\(\mathcal L_{\boldsymbol\theta}(\boldsymbol {\widehat y}, \boldsymbol y)\)</span></p></li>
+<li><p>Do the <strong>backward pass</strong> and calculate gradients
+$<span class="math notranslate nohighlight">\(
+\nabla_{\boldsymbol\theta}\mathcal L_{\boldsymbol\theta}(\boldsymbol {\widehat y}, \boldsymbol y)
+\)</span>$</p></li>
+<li><p>Update the parameters:</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[
+    \boldsymbol \theta = \boldsymbol \theta - \eta \nabla_{\boldsymbol\theta}\mathcal L_{\boldsymbol\theta}(\boldsymbol {\widehat y}, \boldsymbol y)
+\]</div>
+<ol class="arabic simple" start="5">
+<li><p>Go to step 2 with next training sample</p></li>
+</ol>
+<section id="batch-training">
+<h3>Batch training<a class="headerlink" href="#batch-training" title="Permalink to this heading">#</a></h3>
+<p>It is compuationally inefficient to update all the parameters every time after passing a training sample. Instead, take a <strong>batch</strong> of size <span class="math notranslate nohighlight">\(B\)</span> of training samples at a time and form the matrix
+<span class="math notranslate nohighlight">\(\boldsymbol X_{\mathrm{in}}\)</span> if the shape <span class="math notranslate nohighlight">\(B\times n_0\)</span>. Now each hidden representation is a matrix of the shape <span class="math notranslate nohighlight">\(B \times n_i\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol X_i = \psi_i(\boldsymbol X_{i-1} \boldsymbol W_i +\boldsymbol B_i)
+\]</div>
+<p>The output also has <span class="math notranslate nohighlight">\(B\)</span> rows. For instance, in the case of multiclassification task we have</p>
+<div class="math notranslate nohighlight">
+\[
+    \boldsymbol X_L = \boldsymbol {\widehat Y} \in \mathbb R^{B\times K},
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+    \mathcal L(\boldsymbol {\widehat Y}, \boldsymbol Y) = -\frac 1B\sum\limits_{i = 1}^B \sum\limits_{k=1}^K Y_{ik}\log(\widehat Y_{ik})
+\]</div>
+</section>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -522,20 +646,20 @@ document.write(`
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="layers.html"
+       href="activations.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Layers of MLP</p>
+        <p class="prev-next-title">Activation functions</p>
       </div>
     </a>
     <a class="right-next"
-       href="activations.html"
+       href="backprop.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Activation functions</p>
+        <p class="prev-next-title">Back propagation</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -548,6 +672,29 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#binary-classification">Binary classification</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiclass-classification">Multiclass classification</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#regression">Regression</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#forward-and-backward-pass">Forward and backward pass</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#batch-training">Batch training</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

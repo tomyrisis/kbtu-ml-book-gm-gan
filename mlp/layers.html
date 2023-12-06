@@ -68,7 +68,7 @@ const thebe_selector_output = ".output, .cell_output"
     <script>DOCUMENTATION_OPTIONS.pagename = 'mlp/layers';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Forward and backward pass" href="forward_backward_pass.html" />
+    <link rel="next" title="Activation functions" href="activations.html" />
     <link rel="prev" title="Multilayer perceptron (MLP)" href="mlp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -239,8 +239,8 @@ const thebe_selector_output = ".output, .cell_output"
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="mlp.html">Multilayer perceptron (MLP)</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-10"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Layers of MLP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="forward_backward_pass.html">Forward and backward pass</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activations.html">Activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="forward_backward_pass.html">Training of MLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backprop.html">Back propagation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="weight_init.html">Weights initialization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="regularization.html">Regularization in MLP</a></li>
@@ -559,7 +559,7 @@ F(\boldsymbol x) = (f_{L} \circ f_{L-1} \circ\ldots \circ f_2 \circ f_1)(\boldsy
 <p>Edges between two consequetive layers denote <strong>linear</strong> (or <strong>dense</strong>) layer:</p>
 <div class="math notranslate nohighlight">
 \[
-    \boldsymbol x_\ell = f(\boldsymbol x_{\ell - 1}; \boldsymbol W, \boldsymbol b) = \boldsymbol {Wx}_{\ell - 1} + \boldsymbol b.
+    \boldsymbol x_\ell^{\mathsf T} = f(\boldsymbol x_{\ell - 1}; \boldsymbol W, \boldsymbol b) = \boldsymbol x_{\ell - 1}^{\mathsf T} \boldsymbol W + \boldsymbol b.
 \]</div>
 <p>The matrix <span class="math notranslate nohighlight">\(\boldsymbol W \in \mathbb R^{n_{\ell - 1}\times n_\ell}\)</span> and vector <span class="math notranslate nohighlight">\(\boldsymbol b \in \mathbb R^{n_\ell}\)</span> (bias) are parameters of the linear layer which defines the linear transformation from <span class="math notranslate nohighlight">\(\boldsymbol x_{\ell - 1}\)</span> to <span class="math notranslate nohighlight">\(\boldsymbol x_{\ell}\)</span>.</p>
 <p><strong>Q</strong>. How many numeric parameters does such linear layer have?</p>
@@ -578,28 +578,44 @@ F(\boldsymbol x) = (f_{L} \circ f_{L-1} \circ\ldots \circ f_2 \circ f_1)(\boldsy
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">x</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([-0.0762,  0.6222, -1.1178,  0.9935,  2.0089])
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([1., 1., 1.])
 </pre></div>
 </div>
 </div>
 </div>
+<p>Weights:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">linear_layer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-<span class="n">linear_layer</span><span class="o">.</span><span class="n">bias</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">linear_layer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">linear_layer</span><span class="o">.</span><span class="n">weight</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Parameter containing:
-tensor([-0.4328,  0.1590, -0.0809,  0.3756, -0.3382,  0.4353],
-       requires_grad=True)
+tensor([[-0.4484,  0.5759, -0.3938],
+        [-0.5506, -0.1603,  0.3134],
+        [-0.2858, -0.0493, -0.0959],
+        [-0.0627,  0.3831,  0.4740]], requires_grad=True)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Apply the linear transformation:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">linear_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([-0.2664, -0.3975, -0.4310,  0.7944], grad_fn=&lt;SqueezeBackward4&gt;)
 </pre></div>
 </div>
 </div>
@@ -608,6 +624,23 @@ tensor([-0.4328,  0.1590, -0.0809,  0.3756, -0.3382,  0.4353],
 </section>
 <section id="activation-layer">
 <h2>Activation layer<a class="headerlink" href="#activation-layer" title="Permalink to this heading">#</a></h2>
+<p>In this layer a nonlinear <strong>activation function</strong> <span class="math notranslate nohighlight">\(\psi\)</span> is applied element-wise to its input:</p>
+<div class="math notranslate nohighlight">
+\[
+    \psi(\boldsymbol x^{\mathsf T}) = \psi\big((x_1, \ldots, x_n)\big) = \big(\psi(x_1), \ldots, \psi(x_n)\big)  = \boldsymbol z^{\mathsf T}
+\]</div>
+<p>In the origial work by Rosenblatt the activation function was <span class="math notranslate nohighlight">\(\psi(t) = [t &gt; 0]\)</span>. However, this function is discontinuous, that’s why in modern neural networks some other smooth alternatives are used.</p>
+<p>Sometimes linear and activation layers are combined into a single layer. Then each MLP layer looks like</p>
+<div class="math notranslate nohighlight">
+\[
+    \boldsymbol x_i^{\mathsf T} = \psi_i(\boldsymbol x_{i-1}^{\mathsf T} \boldsymbol W_{i} + \boldsymbol b_{i})
+\]</div>
+<p>where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol W_{i}\)</span> is a matrix of the shape <span class="math notranslate nohighlight">\(n_{i-1}\times n_i\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol x_i, \boldsymbol b_i \in \mathbb R^{n_i}\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol x_{i-1} \in \mathbb R^{n_{i-1}}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\psi_i(t)\)</span> is an activation function which acts element-wise</p></li>
+</ul>
 </section>
 </section>
 
@@ -652,11 +685,11 @@ tensor([-0.4328,  0.1590, -0.0809,  0.3756, -0.3382,  0.4353],
       </div>
     </a>
     <a class="right-next"
-       href="forward_backward_pass.html"
+       href="activations.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Forward and backward pass</p>
+        <p class="prev-next-title">Activation functions</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

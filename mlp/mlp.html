@@ -63,6 +63,8 @@ const thebe_selector_input = "pre"
 const thebe_selector_output = ".output, .cell_output"
 </script>
     <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'mlp/mlp';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -237,8 +239,8 @@ const thebe_selector_output = ".output, .cell_output"
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Multilayer perceptron (MLP)</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-10"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="layers.html">Layers of MLP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="forward_backward_pass.html">Forward and backward pass</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activations.html">Activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="forward_backward_pass.html">Training of MLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backprop.html">Back propagation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="weight_init.html">Weights initialization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="regularization.html">Regularization in MLP</a></li>
@@ -487,9 +489,36 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="multilayer-perceptron-mlp">
+  <!-- #region -->
+<section class="tex2jax_ignore mathjax_ignore" id="multilayer-perceptron-mlp">
 <h1>Multilayer perceptron (MLP)<a class="headerlink" href="#multilayer-perceptron-mlp" title="Permalink to this heading">#</a></h1>
 <p><strong>Multilayer perceptron</strong> (MLP) was originally introduced in Rosenblatt’s paper back in 1957. It is a simplest type of feedforward artificial neural network that consists of multiple layers of interconnected artificial neurons (perceptrons).</p>
+<figure class="align-center">
+<img alt="https://miro.medium.com/v2/resize:fit:1400/1*ofVdu6L3BDbHyt1Ro8w07Q.png" src="https://miro.medium.com/v2/resize:fit:1400/1*ofVdu6L3BDbHyt1Ro8w07Q.png" />
+</figure>
+<p>MLP consitsts of <strong>neurons</strong>, each neuron holds a number. In the picture above we can see an input layer of neurons <span class="math notranslate nohighlight">\(x_1, \ldots, x_n\)</span> and one neuron <span class="math notranslate nohighlight">\(z\)</span> of the output layer. To calculate <span class="math notranslate nohighlight">\(z\)</span> one needs to apply <span class="math notranslate nohighlight">\(2\)</span> operation:</p>
+<ul class="simple">
+<li><p>linear tranformation</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+    y = \sum\limits_{i=1}^n w_i x_i + w_0 
+\]</div>
+<ul class="simple">
+<li><p>activation function</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+    z = \sigma(y), \quad \sigma(y) = [y &gt; 0].
+\]</div>
+<p>If we have several neurons <span class="math notranslate nohighlight">\(z_1, \ldots, z_m\)</span> in the output layer, then the linear transformation between layers can be written as</p>
+<div class="math notranslate nohighlight" id="equation-linear-layer-coord">
+<span class="eqno">(31)<a class="headerlink" href="#equation-linear-layer-coord" title="Permalink to this equation">#</a></span>\[    z_j = \sum\limits_{i=1}^n w_{ij} x_i, \quad j  1, \ldots, m\]</div>
+<div class="important admonition">
+<p class="admonition-title">Question</p>
+<p>Denote <span class="math notranslate nohighlight">\(\boldsymbol x^{\mathsf T} = (x_1, \ldots, x_n)\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol z^{\mathsf T} = (z_1, \ldots, z_m)\)</span>,  <span class="math notranslate nohighlight">\(\boldsymbol W = (w_{ij})\)</span>. How to rewrite <a class="reference internal" href="#equation-linear-layer-coord">(31)</a> in matrix form?</p>
+</div>
+<!-- #endregion -->
 <div class="toctree-wrapper compound">
 </div>
 </section>
